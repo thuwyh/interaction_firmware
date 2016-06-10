@@ -132,6 +132,14 @@ void resetADS1298(void)
         if (shakeHands()==0x92)
             break;
     }
+    
+    while (1)
+    {
+        writeRegister(0x01,0x86);
+        delayMs(10);
+        if (readRegister(0x01,1)==0x86)
+            break;
+    }
 }
 
 void enableADS1298(void)
@@ -297,4 +305,50 @@ u8 shakeHands(void)
     u8 deviceID;
     deviceID=readRegister(0x00,1);
     return deviceID;
+}
+
+
+void configForNoiseTest(void)
+{
+    u8 addr;
+    //配置通道
+    for (addr=0x05;addr<0x09;addr++)
+    {
+        while(1)
+        {
+            // input short
+            writeRegister(addr,0x01);
+            delayMs(10);
+            if (readRegister(addr,1)==0x01)
+                break;
+        }
+    }        
+}
+void configForSquarewaveTest(void)
+{
+    u8 addr;
+    //配置测试信号发生器
+    while (1)
+    {
+        writeRegister(0x02,0x10);
+        delayMs(10);
+        if (readRegister(0x02,1)==0x10)
+            break;
+    }
+    //配置通道
+    for (addr=0x05;addr<0x09;addr++)
+    {
+        while(1)
+        {
+            writeRegister(addr,0x05);
+            delayMs(10);
+            if (readRegister(addr,1)==0x05)
+                break;
+        }
+    }    
+}
+
+void configForNormalMeasurement(void)
+{
+    
 }

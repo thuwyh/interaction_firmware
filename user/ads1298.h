@@ -26,5 +26,9 @@ void disableADS1298(void);
 void fakeHandler(void);
 u8 shakeHands(void);
 
+void configForNoiseTest(void);
+void configForSquarewaveTest(void);
+void configForNormalMeasurement(void);
+
 
 #endif

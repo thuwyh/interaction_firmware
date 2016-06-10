@@ -140,6 +140,24 @@ void parse(u8 c)
                 writeRegister(0x0e,value);
                 
             }
+            if (command ==0x04)
+            {
+                configForNoiseTest();
+                USART2_SendByte(0xff);
+                USART2_SendByte(0xff);
+                USART2_SendByte(0x03);
+                USART2_SendByte(0xff);
+                USART2_SendByte(0xff);
+            }
+            if (command ==0x05)
+            {
+                configForSquarewaveTest();
+                USART2_SendByte(0xff);
+                USART2_SendByte(0xff);
+                USART2_SendByte(0x03);
+                USART2_SendByte(0xff);
+                USART2_SendByte(0xff);
+            }
             if (command==0x10)
                 beginReadDataC();   //begin continuously conversion
             if (command==0x11)
@@ -174,8 +192,8 @@ void parse(u8 c)
                 USART2_SendByte(0xff);
                 USART2_SendByte(0xff);
                 USART2_SendByte(0x03);
-                USART2_SendByte(0x92);
-                USART2_SendByte(0x92);                
+                USART2_SendByte(0xff);
+                USART2_SendByte(0xff);                
             }
         }
         state=HEAD;
