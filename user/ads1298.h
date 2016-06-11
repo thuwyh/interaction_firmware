@@ -20,15 +20,15 @@ void beginReadDataC(void);
 void stopReadDataC(void);
 int writeRegister(u8 addr,u8 value);
 float readData(void);
-void resetADS1298(void);
 void enableADS1298(void);
 void disableADS1298(void);
 void fakeHandler(void);
 u8 shakeHands(void);
 
-void configForNoiseTest(void);
-void configForSquarewaveTest(void);
-void configForNormalMeasurement(void);
+int resetADS1298(void);
+int configForNoiseTest(void);
+int configForSquarewaveTest(void);
+int configForNormalMeasurement(void);
 
 
 #endif

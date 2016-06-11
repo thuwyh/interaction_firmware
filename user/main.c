@@ -29,14 +29,15 @@ int main(void)
 {
 //    int i;
     u8 deviceID;
+    
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-
+    
     systick_init();
     NVIC_SetPriority(SysTick_IRQn, 0x0);
-
     USART2_Init(921600);
+    
     ads1298_init();
-    motor_init();
+    //motor_init();
 //    resetADS1298();
 //    GPIO_ResetBits(GPIOE,GPIO_Pin_8);
 //    if (shakeHands()==0x92)

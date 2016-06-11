@@ -111,36 +111,7 @@ u8 readRegister(char start,u8 count)
     return r;
 }
 
-void resetADS1298(void)
-{
-    while(1)
-    {
-        GPIO_SetBits(GPIOE,GPIO_Pin_8|GPIO_Pin_9);
-        GPIO_ResetBits(GPIOB,GPIO_Pin_1);
-        GPIO_ResetBits(GPIOB,GPIO_Pin_2);
-        
-        delayMs(10);
-        
-        GPIO_ResetBits(GPIOE,GPIO_Pin_8);
-        delayMs(50);
-        GPIO_SetBits(GPIOE,GPIO_Pin_8);
-        delayMs(10);
-        
-        enableADS1298();
-        EMG_SendByte(SDATAC);
-        disableADS1298();
-        if (shakeHands()==0x92)
-            break;
-    }
-    
-    while (1)
-    {
-        writeRegister(0x01,0x86);
-        delayMs(10);
-        if (readRegister(0x01,1)==0x86)
-            break;
-    }
-}
+
 
 void enableADS1298(void)
 {
@@ -307,48 +278,126 @@ u8 shakeHands(void)
     return deviceID;
 }
 
-
-void configForNoiseTest(void)
+int resetADS1298(void)
 {
-    u8 addr;
+    int trytime;
+    GPIO_SetBits(GPIOE,GPIO_Pin_8|GPIO_Pin_9);
+    GPIO_ResetBits(GPIOB,GPIO_Pin_1);
+    GPIO_ResetBits(GPIOB,GPIO_Pin_2);
+    delayMs(10);
+
+    for (trytime=0;trytime<5;trytime++)
+    {      
+        GPIO_ResetBits(GPIOE,GPIO_Pin_8);
+        delayMs(50);
+        GPIO_SetBits(GPIOE,GPIO_Pin_8);
+        delayMs(10);
+        
+        enableADS1298();
+        EMG_SendByte(SDATAC);
+        disableADS1298();
+        if (shakeHands()==0x92)
+            break;
+        delayMs(10);
+    }
+    if (trytime==5)
+        return -1;
+    
+    for (trytime=0;trytime<5;trytime++)
+    {
+        writeRegister(0x01,0x86);
+        delayMs(10);
+        if (readRegister(0x01,1)==0x86)
+            break;
+        delayMs(10);
+    }
+    if (trytime==5)
+        return -1;
+    
+    for (trytime=0;trytime<5;trytime++)
+    {
+        writeRegister(0x03,0xdc);
+        delayMs(10);
+        if (readRegister(0x03,1)==0xdc)
+            break;
+        delayMs(10);
+    }
+    if (trytime==5)
+        return -1;
+    
+    return 0;
+}
+
+int configForNoiseTest(void)
+{
+    u8 addr,trytime;
     //配置通道
     for (addr=0x05;addr<0x09;addr++)
     {
-        while(1)
+        for (trytime=0;trytime<5;trytime++)
         {
             // input short
             writeRegister(addr,0x01);
             delayMs(10);
             if (readRegister(addr,1)==0x01)
                 break;
+            delayMs(10);
         }
-    }        
+        if (trytime==5)
+            return -1;
+    }
+    return 0;
 }
-void configForSquarewaveTest(void)
+
+int configForSquarewaveTest(void)
 {
-    u8 addr;
+    u8 addr,trytime;
     //配置测试信号发生器
-    while (1)
+    for (trytime=0;trytime<5;trytime++)
     {
         writeRegister(0x02,0x10);
         delayMs(10);
         if (readRegister(0x02,1)==0x10)
             break;
+        delayMs(10);
     }
+    if (trytime==5)
+        return -1;
+    
     //配置通道
     for (addr=0x05;addr<0x09;addr++)
     {
-        while(1)
+        for (trytime=0;trytime<5;trytime++)
         {
             writeRegister(addr,0x05);
             delayMs(10);
             if (readRegister(addr,1)==0x05)
                 break;
+            delayMs(10);
         }
+        if (trytime==5)
+            return -1;
     }    
+    return 0;
 }
 
-void configForNormalMeasurement(void)
+int configForNormalMeasurement(void)
 {
+    u8 addr,trytime;
     
+    //配置通道
+    for (addr=0x05;addr<0x09;addr++)
+    {
+        for (trytime=0;trytime<5;trytime++)
+        {
+            writeRegister(addr,0x00);
+            delayMs(10);
+            if (readRegister(addr,1)==0x00)
+                break;
+            delayMs(10);
+        }
+        if (trytime==5)
+            return -1;
+    }    
+    return 0;    
 }

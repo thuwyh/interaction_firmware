@@ -70,6 +70,7 @@ void parse(u8 c)
 {
     static u8 index=0,length=0,command,addr,value,sum;
     u8 deviceID;
+    int retval;
     if (state == HEAD && c==0xff)
     {
         state=LENGTH;
@@ -142,21 +143,51 @@ void parse(u8 c)
             }
             if (command ==0x04)
             {
-                configForNoiseTest();
+                retval=configForNoiseTest();
                 USART2_SendByte(0xff);
                 USART2_SendByte(0xff);
                 USART2_SendByte(0x03);
-                USART2_SendByte(0xff);
-                USART2_SendByte(0xff);
+                if (retval==0)
+                {
+                    USART2_SendByte(0xff);
+                    USART2_SendByte(0xff);
+                }else
+                {
+                    USART2_SendByte(0xee);
+                    USART2_SendByte(0xee);
+                }
             }
             if (command ==0x05)
             {
-                configForSquarewaveTest();
+                retval=configForSquarewaveTest();
                 USART2_SendByte(0xff);
                 USART2_SendByte(0xff);
                 USART2_SendByte(0x03);
+                if (retval==0)
+                {
+                    USART2_SendByte(0xff);
+                    USART2_SendByte(0xff);
+                }else
+                {
+                    USART2_SendByte(0xee);
+                    USART2_SendByte(0xee);
+                }
+            }
+            if ( command == 0x06)
+            {
+                retval=configForNormalMeasurement();
                 USART2_SendByte(0xff);
                 USART2_SendByte(0xff);
+                USART2_SendByte(0x03);
+                if (retval==0)
+                {
+                    USART2_SendByte(0xff);
+                    USART2_SendByte(0xff);
+                }else
+                {
+                    USART2_SendByte(0xee);
+                    USART2_SendByte(0xee);
+                }
             }
             if (command==0x10)
                 beginReadDataC();   //begin continuously conversion
