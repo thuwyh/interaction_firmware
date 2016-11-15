@@ -36,12 +36,14 @@ void motorshake(u8 motors,int shaketime, int sleeptime, int times)
     {
         GPIO_ResetBits(GPIOA,GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10);
         
-        timenow=getSystime();
-        while (getSystime()<timenow+shaketime);
+        //timenow=getSystime();
+        //while (getSystime()<timenow+shaketime);
+        delayMs(shaketime);
         
         GPIO_SetBits(GPIOA,GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10);
 
-        timenow=getSystime();
-        while (getSystime()<timenow+shaketime);
+        delayMs(sleeptime);
+        //timenow=getSystime();
+        //while (getSystime()<timenow+shaketime);
     }
 }

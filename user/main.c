@@ -37,7 +37,8 @@ int main(void)
     USART2_Init(921600);
     
     ads1298_init();
-    //motor_init();
+    Sensor_Init();
+    motor_init();
 //    resetADS1298();
 //    GPIO_ResetBits(GPIOE,GPIO_Pin_8);
 //    if (shakeHands()==0x92)
@@ -47,6 +48,7 @@ int main(void)
     
     while (1)
     {
+        //Sensor_GetOriQuaternion(FORESENSOR);
         //motorshake(0xff,100,100,10);
         //delayMs(1000);
         //USART2_SendByte(0x88);

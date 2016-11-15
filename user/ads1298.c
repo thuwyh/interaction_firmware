@@ -107,6 +107,7 @@ u8 readRegister(char start,u8 count)
     EMG_SendByte(0x00);
     emgPointer=0;
     r=EMG_SendByte(0xff);
+    EMG_SendByte(0x00); //0916
     disableADS1298();
     return r;
 }
@@ -129,6 +130,7 @@ int writeRegister(u8 addr,u8 value)
     EMG_SendByte(WREG|addr);
     EMG_SendByte(0x00);
     EMG_SendByte(value);
+    EMG_SendByte(0x00); //0916
     disableADS1298();
     //delayMs(1);
     if (readRegister(addr,1)==value)
@@ -165,24 +167,31 @@ void beginReadDataC(void){
     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTI_InitStructure);
 
+    //START LOW
+    GPIO_ResetBits(GPIOB,GPIO_Pin_2);
+    
     //Start RDATAC
     enableADS1298();
     delayMs(5);
 
     EMG_SendByte(START);
     delayMs(1);
+    // START HIGH
+    GPIO_SetBits(GPIOB,GPIO_Pin_2);
+    
     EMG_SendByte(RDATAC);
-    disableADS1298();
+    //disableADS1298();
     
-    //START HIGH
-    GPIO_ResetBits(GPIOB,GPIO_Pin_2);
     
-        enableADS1298();
+    //enableADS1298();
 }
 
 
 void stopReadDataC(void)
 {
+    //START Low
+    GPIO_ResetBits(GPIOB,GPIO_Pin_2);
+    
     //Stop RDATAC
     enableADS1298();
 
@@ -214,34 +223,41 @@ void EXTI4_IRQHandler(void)
         USART2_SendByte(0x01);
     }
 
-
-
     for (i=0;i<27;i++)
     {
-        tmp=EMG_SendByte(0x00);
+        tmp=EMG_SendByte(0xff);
         if (counter&0x01)
             USART2_SendByte(tmp);
         sum+=tmp;
     }
-    
+     
     if (counter&0x01)
-    {
-        USART2_SendByte(sum);
-    }
+        USART2_SendByte(sum);//send checksum
     
-
-//    if (counter&0x01)
-//        USART2_SendByte(sum);//send checksum
-//    if (counter%25==0)
+//    if (counter%20==0)
 //    {
+//        delayMs(1);
+//        USART2_SendByte(0xff);
+//        USART2_SendByte(0xff);
+//        USART2_SendByte(0x02);
+//        sum=0;
+//        for (i=0;i<16;i++)
+//            USART2_SendByte(0x00);
+//        
 //        //Sensor_GetOriQuaternion(BODYSENSOR);
-//        //Sensor_GetOriQuaternion(UPPERSENSOR);
-//        Sensor_GetOriQuaternion(FORESENSOR);
-//        Sensor_GetOriQuaternion(FORESENSOR);
-//        Sensor_GetOriQuaternion(FORESENSOR);
+//        //tmp=Sensor_GetOriQuaternion(UPPERSENSOR);
+//        //sum+=tmp;
+//        tmp=Sensor_GetOriQuaternion(UPPERSENSOR);
+//        sum+=tmp;
+//        
+//        tmp=Sensor_GetOriQuaternion(FORESENSOR);
+//        sum+=tmp;
+//        //delayMs(1);
+////        tmp=Sensor_GetOriQuaternion(FORESENSOR);
+////        sum+=tmp;
+//        USART2_SendByte(sum);
 //    }
-//    if(counter%500==0)
-//        printf("%d\n",counter);
+
     EXTI_ClearITPendingBit(EXTI_Line4);
 }
 
@@ -295,6 +311,7 @@ int resetADS1298(void)
         
         enableADS1298();
         EMG_SendByte(SDATAC);
+        EMG_SendByte(0x00); //9.16
         disableADS1298();
         if (shakeHands()==0x92)
             break;
@@ -316,11 +333,33 @@ int resetADS1298(void)
     
     for (trytime=0;trytime<5;trytime++)
     {
-        writeRegister(0x03,0xdc);
+        writeRegister(0x03,0xcc);   //0916
         delayMs(10);
-        if (readRegister(0x03,1)==0xdc)
+        if (readRegister(0x03,1)==0xcc) //0916
             break;
         delayMs(10);
+    }
+    if (trytime==5)
+        return -1;
+    
+    //0916
+    for (trytime=0;trytime<5;trytime++)
+    {
+        writeRegister(0x0d,0x89);
+        delayMs(20);
+        if (readRegister(0x0d,1)==0x89)
+            break;
+    }
+    
+    if (trytime==5)
+        return -1;
+    
+    for (trytime=0;trytime<5;trytime++)
+    {    
+        writeRegister(0x0e,0x89);
+        delayMs(20);
+        if (readRegister(0x0e,1)==0x89)
+            break;
     }
     if (trytime==5)
         return -1;
@@ -332,7 +371,7 @@ int configForNoiseTest(void)
 {
     u8 addr,trytime;
     //配置通道
-    for (addr=0x05;addr<0x09;addr++)
+    for (addr=0x05;addr<0x0d;addr++)
     {
         for (trytime=0;trytime<5;trytime++)
         {
@@ -365,7 +404,7 @@ int configForSquarewaveTest(void)
         return -1;
     
     //配置通道
-    for (addr=0x05;addr<0x09;addr++)
+    for (addr=0x05;addr<0x0d;addr++)
     {
         for (trytime=0;trytime<5;trytime++)
         {
@@ -386,7 +425,7 @@ int configForNormalMeasurement(void)
     u8 addr,trytime;
     
     //配置通道
-    for (addr=0x05;addr<0x09;addr++)
+    for (addr=0x05;addr<0x0d;addr++)
     {
         for (trytime=0;trytime<5;trytime++)
         {
@@ -400,4 +439,32 @@ int configForNormalMeasurement(void)
             return -1;
     }    
     return 0;    
+}
+
+
+int configRLD(u8 rldp, u8 rldn)
+{
+    u8 trytime;
+    for (trytime=0;trytime<5;trytime++)
+    {
+        writeRegister(0x0d,rldp);
+        delayMs(20);
+        if (readRegister(0x0d,1)==rldp)
+            break;
+    }
+    
+    if (trytime==5)
+        return -1;
+    
+    for (trytime=0;trytime<5;trytime++)
+    {    
+        writeRegister(0x0e,rldn);
+        delayMs(20);
+        if (readRegister(0x0e,1)==rldn)
+            break;
+    }
+    if (trytime==5)
+        return -1;
+    
+    return 0;
 }

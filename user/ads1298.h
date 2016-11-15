@@ -29,6 +29,8 @@ int resetADS1298(void);
 int configForNoiseTest(void);
 int configForSquarewaveTest(void);
 int configForNormalMeasurement(void);
+int configRLD(u8 rldp, u8 rldn);
+
 
 
 #endif

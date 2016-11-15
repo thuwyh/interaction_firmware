@@ -136,10 +136,19 @@ void parse(u8 c)
             }
             if (command ==0x03)
             {
-                writeRegister(0x0d,addr);
-                delayMs(20);
-                writeRegister(0x0e,value);
-                
+                retval = configRLD(addr, value);
+                USART2_SendByte(0xff);
+                USART2_SendByte(0xff);
+                USART2_SendByte(0x03);
+                if (retval==0)
+                {
+                    USART2_SendByte(0xff);
+                    USART2_SendByte(0xff);
+                }else
+                {
+                    USART2_SendByte(0xee);
+                    USART2_SendByte(0xee);
+                }                
             }
             if (command ==0x04)
             {
@@ -226,6 +235,17 @@ void parse(u8 c)
                 USART2_SendByte(0xff);
                 USART2_SendByte(0xff);                
             }
+            // motor shake
+            if (command==0x25)
+                motorshake(0x04,5000,0,1);
+            if (command==0x26)
+                motorshake(0x04,165,165,6);
+            if (command==0x27)
+                motorshake(0x04,500,500,2);
+            if (command==0x28)
+                motorshake(0x04,1000,0,1);
+            if (command==0x29)
+                motorshake(0x04,50,50,20);
         }
         state=HEAD;
         return;
